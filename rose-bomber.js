@@ -23,6 +23,7 @@ function initializeDatabase() {
         db.run(`
             CREATE TABLE IF NOT EXISTS users (
                 id TEXT PRIMARY KEY,
+                username TEXT,
                 credits INTEGER DEFAULT 0,
                 emails_sent_today INTEGER DEFAULT 0,
                 total_emails_sent INTEGER DEFAULT 0
@@ -389,6 +390,38 @@ Just type any of the above commands to get started!
 `;
         bot.sendMessage(chatId, helpMessage);
     }
+});
+
+// Function to retrieve leaderboard
+function retrieveLeaderboard() {
+    return new Promise((resolve, reject) => {
+        const query = "SELECT username, total_emails_sent FROM users ORDER BY total_emails_sent DESC LIMIT 10";
+        db.all(query, [], (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows);
+            }
+        });
+    });
+}
+
+// Bot command to display leaderboard
+bot.onText(/\/leaderboard/, (msg) => {
+    retrieveLeaderboard()
+        .then(leaderboard => {
+            let message = "🏆 Top 10 Users by Emails Sent 🏆\n";
+            leaderboard.forEach((user, index) => {
+                // Handle cases where username might be null or empty
+                const displayName = user.username || 'Unknown User';
+                message += `${index + 1}. ${displayName} - ${user.total_emails_sent} emails\n`;
+            });
+            bot.sendMessage(msg.chat.id, message);
+        })
+        .catch(error => {
+            console.error("Error retrieving leaderboard:", error);
+            bot.sendMessage(msg.chat.id, "Sorry, there was an error retrieving the leaderboard.");
+        });
 });
 
 

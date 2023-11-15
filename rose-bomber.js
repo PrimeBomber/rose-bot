@@ -395,7 +395,7 @@ Just type any of the above commands to get started!
 // Function to retrieve leaderboard
 function retrieveLeaderboard() {
     return new Promise((resolve, reject) => {
-        const query = "SELECT username, total_emails_sent FROM users ORDER BY total_emails_sent DESC LIMIT 10";
+        const query = "SELECT id, total_emails_sent FROM users ORDER BY total_emails_sent DESC LIMIT 10";
         db.all(query, [], (err, rows) => {
             if (err) {
                 reject(err);
@@ -412,9 +412,7 @@ bot.onText(/\/leaderboard/, (msg) => {
         .then(leaderboard => {
             let message = "🏆 Top 10 Users by Emails Sent 🏆\n";
             leaderboard.forEach((user, index) => {
-                // Handle cases where username might be null or empty
-                const displayName = user.username || 'Unknown User';
-                message += `${index + 1}. ${displayName} - ${user.total_emails_sent} emails\n`;
+                message += `${index + 1}. User ID: ${user.id} - ${user.total_emails_sent} emails\n`;
             });
             bot.sendMessage(msg.chat.id, message);
         })

@@ -124,7 +124,7 @@ bot.onText(/.*/, async (msg) => {
         switch (row.step) {
             case 'input_email':
                 if (validateEmail(text)) {
-                    bot.sendMessage(chatId, "How many emails do you want to send? (Minimum 50, Maximum 1000)");
+                    bot.sendMessage(chatId, "How many emails do you want to send? (Minimum 50, Maximum 1500)");
                     db.run("UPDATE steps SET email = ?, step = 'input_amount' WHERE userId = ?", [text, userId]);
                 } else {
                     if (row.email_attempts >= 1) {
@@ -139,12 +139,12 @@ bot.onText(/.*/, async (msg) => {
 
             case 'input_amount':
                 const emailAmount = parseInt(text);
-                if (isNaN(emailAmount) || emailAmount < 50 || emailAmount > 1000) {
+                if (isNaN(emailAmount) || emailAmount < 50 || emailAmount > 1500) {
                     if (row.amount_attempts >= 1) {
                         bot.sendMessage(chatId, "Invalid amount entered twice. Process canceled.");
                         db.run("DELETE FROM steps WHERE userId = ?", [userId]);
                     } else {
-                        bot.sendMessage(chatId, "Invalid amount. Please enter a value between 10 and 1000.");
+                        bot.sendMessage(chatId, "Invalid amount. Please enter a value between 50 and 1500.");
                         db.run("UPDATE steps SET amount_attempts = amount_attempts + 1 WHERE userId = ?", [userId]);
                     }
                     return;

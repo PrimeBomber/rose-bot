@@ -410,7 +410,7 @@ function retrieveLeaderboard() {
 bot.onText(/\/leaderboard/, (msg) => {
     retrieveLeaderboard()
         .then(leaderboard => {
-            let message = "🏆 Top 10 Users by Emails Sent 🏆\n";
+            let message = "🏆 Top 10 Users (Total Mails sent) 🏆\n";
             leaderboard.forEach((user, index) => {
                 message += `${index + 1}. User ID: ${user.id} - ${user.total_emails_sent} emails\n`;
             });

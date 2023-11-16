@@ -93,7 +93,7 @@ function validateEmail(email) {
     return re.test(email);
 }
 
-bot.onText(/\/send/, (msg) => {
+bot.onText(/\/sendmail/, (msg) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id.toString();
 
@@ -209,6 +209,26 @@ bot.onText(/.*/, async (msg) => {
 bot.onText(/\/sendsms/, (msg) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id.toString();
+
+    db.get("SELECT * FROM users WHERE id = ?", [userId], (err, user) => {
+        if (err) {
+            bot.sendMessage(chatId, "Error accessing your account. Please try again later.");
+            return;
+        }
+
+        if (!user) {
+            bot.sendMessage(chatId, "Your account is not registered. Please start with /start.");
+            return;
+        }
+
+        bot.sendMessage(chatId, "Please enter the target phone number (format: 1234567890@sms.gateway):");
+        db.run("INSERT OR REPLACE INTO steps (userId, step, phone_attempts, amount_attempts) VALUES (?, 'input_phone', 0, 0)", [userId]);
+    });
+});
+
+bot.onText(/.*/, async (msg) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id.toString();
     const text = msg.text;
 
     db.get("SELECT * FROM steps WHERE userId = ?", [userId], async (err, row) => {
@@ -218,7 +238,7 @@ bot.onText(/\/sendsms/, (msg) => {
             case 'input_phone':
                 // Assuming validatePhone is a function you create to validate the phone number format
                 if (validatePhone(text)) {
-                    bot.sendMessage(chatId, "How many SMS messages do you want to send? (Minimum 50, Maximum 1000)");
+                    bot.sendMessage(chatId, "How many SMS messages do you want to send? (Minimum 10, Maximum 1000)");
                     db.run("UPDATE steps SET phone = ?, step = 'input_sms_amount' WHERE userId = ?", [text, userId]);
                 } else {
                     if (row.phone_attempts >= 1) {

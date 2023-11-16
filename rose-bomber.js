@@ -93,6 +93,13 @@ function validateEmail(email) {
     return re.test(email);
 }
 
+function validatePhone(phoneNumber) {
+    // Regular expression to match a 10-digit phone number
+    const regex = /^\d{10}$/;
+
+    return regex.test(phoneNumber);
+}
+
 bot.onText(/\/sendmail/, (msg) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id.toString();

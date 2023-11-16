@@ -206,6 +206,95 @@ bot.onText(/.*/, async (msg) => {
     });
 });
 
+bot.onText(/\/sendsms/, async (msg) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id.toString();
+    const text = msg.text;
+
+    db.get("SELECT * FROM steps WHERE userId = ?", [userId], async (err, row) => {
+        if (err || !row) return;
+
+        switch (row.step) {
+            case 'input_phone':
+                // Assuming validatePhone is a function you create to validate the phone number format
+                if (validatePhone(text)) {
+                    bot.sendMessage(chatId, "How many SMS messages do you want to send? (Minimum 10, Maximum 1000)");
+                    db.run("UPDATE steps SET phone = ?, step = 'input_sms_amount' WHERE userId = ?", [text, userId]);
+                } else {
+                    if (row.phone_attempts >= 1) {
+                        bot.sendMessage(chatId, "Invalid phone number entered twice. Process canceled.");
+                        db.run("DELETE FROM steps WHERE userId = ?", [userId]);
+                    } else {
+                        bot.sendMessage(chatId, "Invalid phone number. Please enter a valid phone number.");
+                        db.run("UPDATE steps SET phone_attempts = phone_attempts + 1 WHERE userId = ?", [userId]);
+                    }
+                }
+                return;
+
+            case 'input_sms_amount':
+                const smsAmount = parseInt(text);
+                if (isNaN(smsAmount) || smsAmount < 10 || smsAmount > 1000) {
+                    if (row.amount_attempts >= 1) {
+                        bot.sendMessage(chatId, "Invalid amount entered twice. Process canceled.");
+                        db.run("DELETE FROM steps WHERE userId = ?", [userId]);
+                    } else {
+                        bot.sendMessage(chatId, "Invalid amount. Please enter a value between 10 and 1000.");
+                        db.run("UPDATE steps SET amount_attempts = amount_attempts + 1 WHERE userId = ?", [userId]);
+                    }
+                    return;
+                }
+
+                const creditsNeeded = smsAmount;
+                db.get("SELECT credits FROM users WHERE id = ?", [userId], async (err, user) => {
+                    if (err || !user) {
+                        bot.sendMessage(chatId, "There was a problem retrieving your credit information.");
+                        return;
+                    }
+
+                    if (creditsNeeded > user.credits) {
+                        bot.sendMessage(chatId, "You do not have enough credits to send this many SMS messages. Please recharge.");
+                        return;
+                    }
+
+                    db.run("UPDATE users SET credits = credits - ? WHERE id = ?", [creditsNeeded, userId], async (error) => {
+                        if (error) {
+                            bot.sendMessage(chatId, "There was a problem updating your credits. Please try again.");
+                            return;
+                        }
+
+                        try {
+                            const url = `https://strike.pw/api/v1/public/attack?apikey=${process.env.STRIKE_API_KEY}&mode=sms&target=${encodeURIComponent(row.phone)}&amount=${smsAmount}`;
+                            const response = await axios.get(url);
+
+                            console.log("API response:", response.data);
+                            if (!response.data.error) {
+                                db.run("UPDATE users SET total_emails_sent = total_emails_sent + ? WHERE id = ?", [smsAmount, userId], (updateErr) => {
+                                    if (updateErr) {
+                                        console.error("Error when updating total SMS sent:", updateErr);
+                                        bot.sendMessage(chatId, "There was an error updating the total SMS sent.");
+                                    } else {
+                                        bot.sendMessage(chatId, `SMS messages sent successfully! You have used ${creditsNeeded} credits.`);
+                                    }
+                                });
+                            } else {
+                                bot.sendMessage(chatId, "Failed to send SMS messages. Your credits have been refunded.");
+                                db.run("UPDATE users SET credits = credits + ? WHERE id = ?", [creditsNeeded, userId]);
+                            }
+                        } catch (error) {
+                            console.error("Error during the API call to send SMS:", error);
+                            bot.sendMessage(chatId, "There was an error sending SMS messages. Your credits have been refunded.");
+                            db.run("UPDATE users SET credits = credits + ? WHERE id = ?", [creditsNeeded, userId]);
+                        }
+
+                        db.run("DELETE FROM steps WHERE userId = ?", [userId]);
+                    });
+                });
+                return;
+        }
+    });
+});
+
+
 bot.onText(/\/info/, (msg) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id.toString();

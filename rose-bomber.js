@@ -221,7 +221,7 @@ bot.onText(/\/sendsms/, (msg) => {
             return;
         }
 
-        bot.sendMessage(chatId, "Please enter the target phone number (format: 1234567890@sms.gateway):");
+        bot.sendMessage(chatId, "Please enter the target phone number (format: 1234567890):");
         db.run("INSERT OR REPLACE INTO steps (userId, step, phone_attempts, amount_attempts) VALUES (?, 'input_phone', 0, 0)", [userId]);
     });
 });

@@ -206,7 +206,7 @@ bot.onText(/.*/, async (msg) => {
     });
 });
 
-bot.onText(/\/sendsms/, async (msg) => {
+bot.onText(/\/sendsms/, (msg) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id.toString();
     const text = msg.text;
@@ -218,7 +218,7 @@ bot.onText(/\/sendsms/, async (msg) => {
             case 'input_phone':
                 // Assuming validatePhone is a function you create to validate the phone number format
                 if (validatePhone(text)) {
-                    bot.sendMessage(chatId, "How many SMS messages do you want to send? (Minimum 10, Maximum 1000)");
+                    bot.sendMessage(chatId, "How many SMS messages do you want to send? (Minimum 50, Maximum 1000)");
                     db.run("UPDATE steps SET phone = ?, step = 'input_sms_amount' WHERE userId = ?", [text, userId]);
                 } else {
                     if (row.phone_attempts >= 1) {

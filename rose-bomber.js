@@ -366,6 +366,8 @@ Here are the commands you can use:
 - /info -> Provides information about your profile.
 - /redeem -> Allows you to redeem a key to add credits to your account.
 
+To buy Keys and get support regarding the Bot, make sure to message @HARDCOR369 
+
 Just type any of the above commands to get started!
 `;
         bot.sendMessage(chatId, helpMessage);
